@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Donation Receipt</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+body{
+    font-family:'Poppins',sans-serif;
+    background:linear-gradient(135deg,#e3f2fd,#fce4ec);
+    padding:20px;
+}
+.container{max-width:800px;margin:auto;}
+.search-box{
+    background:#fff;padding:20px;border-radius:12px;
+    text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.1);
+}
+.search-box input{
+    padding:12px;width:250px;font-size:16px;
+    border-radius:8px;border:1px solid #ccc;
+}
+.search-box button{
+    padding:12px 20px;background:#4caf50;color:#fff;
+    border:none;border-radius:8px;font-size:16px;cursor:pointer;
+}
+
+.receipt{
+    display:none;background:#fff;border-radius:16px;
+    padding:30px;margin-top:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
+    border-top:8px solid #4caf50;
+}
+.receipt h1{text-align:center;color:#2e7d32;}
+.receipt h3{text-align:center;color:#555;margin-bottom:30px;}
+
+.row{display:flex;justify-content:space-between;margin-bottom:10px;}
+.label{font-weight:600;}
+.amount-box{
+    background:#e8f5e9;padding:15px;border-radius:10px;
+    margin:20px 0;text-align:center;font-size:20px;font-weight:700;
+}
+.footer{display:flex;justify-content:space-between;margin-top:40px;}
+.signature{text-align:right;font-weight:600;}
+
+@media print{
+    body{background:#fff;}
+    .search-box{display:none;}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="search-box">
+    <h2>Receipt Number നൽകുക</h2>
+    <input id="receiptNo" placeholder="Enter Receipt No">
+    <button onclick="generateReceipt()">Generate & Download PDF</button>
+</div>
+
+<div class="receipt" id="receipt">
+    <h1>DONATION RECEIPT</h1>
+    <h3>Thank You For Your Support</h3>
+
+    <div class="row"><span class="label">Receipt No</span><span id="rno"></span></div>
+    <div class="row"><span class="label">Date</span><span id="date"></span></div>
+    <div class="row"><span class="label">Donor Name</span><span id="name"></span></div>
+
+    <div class="amount-box">
+        ₹ <span id="amount"></span><br>
+        <small>(<span id="words"></span>)</small>
+    </div>
+
+    <div class="row"><span class="label">Purpose</span><span id="purpose"></span></div>
+    <div class="row"><span class="label">Payment Mode</span><span id="mode"></span></div>
+
+    <div class="footer">
+        <div></div>
+        <div class="signature">
+            <div id="sign"></div>
+            <small>Authorized Signature</small>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<script>
+const TSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRbGUZhtMFw7xyfMvQ40Cf2R3PAI7oR-dRTBBhmwzHEIJFj__066F0l5f0gmk3jv2-oHgHRnMGVyRqr/pub?gid=58253840&single=true&output=tsv";
+
+async function generateReceipt(){
+    const no = receiptNo.value.trim();
+    if(!no){ alert("Receipt Number നൽകുക"); return; }
+
+    const res = await fetch(TSV_URL);
+    const text = await res.text();
+    const rows = text.split("\n").slice(1);
+
+    let found=false;
+    rows.forEach(r=>{
+        const c=r.split("\t");
+        if(c[0]?.trim()===no){
+            rno.innerText=c[0];
+            date.innerText=c[1];
+            name.innerText=c[2];
+            amount.innerText=c[3];
+            words.innerText=c[4];
+            purpose.innerText=c[5];
+            mode.innerText=c[6];
+            sign.innerText=c[7];
+            receipt.style.display="block";
+            found=true;
+
+            // 🔥 AUTO PDF DOWNLOAD (Print Dialog)
+            setTimeout(()=>window.print(),500);
+        }
+    });
+
+    if(!found){
+        alert("ഈ Receipt Number കണ്ടെത്താനായില്ല");
+        receipt.style.display="none";
+    }
+}
+</script>
+</body>
+</html>
